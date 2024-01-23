@@ -908,8 +908,17 @@ def main(year, quarter, outer_folder_name, windows_file_path, clients_excel_file
 
     add_image_to_header(client_file_paths_list, header_image_path)
     add_image_to_footer(client_file_paths_list, footer_image_path)
+    
+    return client_file_paths_list
 
+import zipfile
 
+def create_zip_file(file_paths, zip_file_path):
+    with zipfile.ZipFile(zip_file_path, 'w') as zipf:
+        for file in file_paths:
+            zipf.write(file, os.path.basename(file))
+            
+            
 # Set up the Streamlit app
 st.title('401k File Processor')
 
@@ -981,6 +990,7 @@ outer_folder_name = os.path.join(os.path.expanduser("~"), "Documents", outer_fol
 
 # Button to run the main function
 if st.button('Write SEFG 401(K) Reports'):
+    
     if outer_folder_name:
     
         # Dictionary of all fields with their respective values
@@ -1000,31 +1010,38 @@ if st.button('Write SEFG 401(K) Reports'):
         missing_fields = check_missing_fields(fields)
 
         if not missing_fields:
-            processing_message = st.empty()
-            processing_message.text("Processing... Please wait.")
-
             try:
-                # Adjust file handling in your main function as needed
-                main(
-                    year,
-                    quarter,
-                    outer_folder_name,
-                    windows_file_path,
-                    clients_list_file,
-                    in_brief_file,
-                    requirements_file_path,
-                    general_items_file_path,
-                    at_a_glance_excel_file,
-                    at_a_glance_fine_print,
-                    header_image_path,
-                    footer_image_path
-                )
+                # Get the list of file paths
+                file_paths = main(year,
+                                  quarter,
+                                  outer_folder_name,
+                                  windows_file_path,
+                                  clients_list_file,
+                                  in_brief_file,
+                                  requirements_file_path,
+                                  general_items_file_path,
+                                  at_a_glance_excel_file,
+                                  at_a_glance_fine_print,
+                                  header_image_path,
+                                  footer_image_path
+                                  )
 
-                processing_message.success(
-                    "401(K) Report Writing Completed! Your files have been uploaded to the 401K_Report_Output_Files folder.")
+                # Create a zip file
+                zip_file_path = os.path.join(outer_folder_name, "401k_reports.zip")
+                create_zip_file(file_paths, zip_file_path)
 
+                # Provide a download link for the zip file
+                with open(zip_file_path, "rb") as f:
+                    st.download_button(
+                        label="Download ZIP file",
+                        data=f,
+                        file_name="401k_reports.zip",
+                        mime="application/zip"
+                    )
+                
             except Exception as e:
-                processing_message.error(f"An error occurred: {e}")
+                st.error(f"An error occurred while running the program: {e}")
+
 
         else:
             missing_fields_message = "\n".join(
@@ -1034,6 +1051,8 @@ if st.button('Write SEFG 401(K) Reports'):
     
     else:
         st.error("Please enter the path of the folder where you want to save the files.")
+        
+    
 
 
 # # Example main function call
