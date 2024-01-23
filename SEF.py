@@ -973,57 +973,67 @@ def check_missing_fields(fields):
 
 # [Your existing code to set up file uploaders and other inputs]
 
+# Replace the 'outer_folder_name' input
+#outer_folder_name = st.text_input("Enter the path of the folder where you want to save the files", value="")
+
+# Make it such that the folder path is directed to the user's desktop
+outer_folder_name = os.path.join(os.path.expanduser("~"), "Documents", outer_folder_name)
 
 # Button to run the main function
 if st.button('Write SEFG 401(K) Reports'):
-    # Dictionary of all fields with their respective values
-    fields = {
-        "Outer Folder Name": outer_folder_name,
-        "OS Selection": windows_file_path,
-        "Clients List File": clients_list_file,
-        "In Brief File": in_brief_file,
-        "Requirements File": requirements_file_path,
-        "General Items File": general_items_file_path,
-        "At A Glance Excel File": at_a_glance_excel_file,
-        "At A Glance Fine Print": at_a_glance_fine_print,
-        "Header Image": header_image_path,
-        "Footer Image": footer_image_path
-    }
+    if outer_folder_name:
+    
+        # Dictionary of all fields with their respective values
+        fields = {
+            "Outer Folder Name": outer_folder_name,
+            "OS Selection": windows_file_path,
+            "Clients List File": clients_list_file,
+            "In Brief File": in_brief_file,
+            "Requirements File": requirements_file_path,
+            "General Items File": general_items_file_path,
+            "At A Glance Excel File": at_a_glance_excel_file,
+            "At A Glance Fine Print": at_a_glance_fine_print,
+            "Header Image": header_image_path,
+            "Footer Image": footer_image_path
+        }
 
-    missing_fields = check_missing_fields(fields)
+        missing_fields = check_missing_fields(fields)
 
-    if not missing_fields:
-        processing_message = st.empty()
-        processing_message.text("Processing... Please wait.")
+        if not missing_fields:
+            processing_message = st.empty()
+            processing_message.text("Processing... Please wait.")
 
-        try:
-            # Adjust file handling in your main function as needed
-            main(
-                year,
-                quarter,
-                outer_folder_name,
-                windows_file_path,
-                clients_list_file,
-                in_brief_file,
-                requirements_file_path,
-                general_items_file_path,
-                at_a_glance_excel_file,
-                at_a_glance_fine_print,
-                header_image_path,
-                footer_image_path
-            )
+            try:
+                # Adjust file handling in your main function as needed
+                main(
+                    year,
+                    quarter,
+                    outer_folder_name,
+                    windows_file_path,
+                    clients_list_file,
+                    in_brief_file,
+                    requirements_file_path,
+                    general_items_file_path,
+                    at_a_glance_excel_file,
+                    at_a_glance_fine_print,
+                    header_image_path,
+                    footer_image_path
+                )
 
-            processing_message.success(
-                "401(K) Report Writing Completed! Your files have been uploaded to the 401K_Report_Output_Files folder.")
+                processing_message.success(
+                    "401(K) Report Writing Completed! Your files have been uploaded to the 401K_Report_Output_Files folder.")
 
-        except Exception as e:
-            processing_message.error(f"An error occurred: {e}")
+            except Exception as e:
+                processing_message.error(f"An error occurred: {e}")
 
+        else:
+            missing_fields_message = "\n".join(
+                [f"- {field}" for field in missing_fields])
+            st.error(
+                f"Please upload all required files. Missing:\n{missing_fields_message}")
+    
     else:
-        missing_fields_message = "\n".join(
-            [f"- {field}" for field in missing_fields])
-        st.error(
-            f"Please upload all required files. Missing:\n{missing_fields_message}")
+        st.error("Please enter the path of the folder where you want to save the files.")
 
 
 # # Example main function call
